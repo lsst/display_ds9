@@ -1,0 +1,17 @@
+*.dylib
+*.o
+*.so
+*.os
+*.pyc
+*_wrap.cc
+*Lib.py
+.sconf_temp
+.sconsign.dblite
+config.log
+doc/*.tag
+doc/html
+doc/doxygen.conf
+python/lsst/display/ds9/version.py
+python/lsst/display/ds9/xpa.py
+tests/.tests
+ups/*.cfgc

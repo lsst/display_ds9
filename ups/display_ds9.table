@@ -1,0 +1,4 @@
+setupRequired(afw)
+setupRequired(xpa)
+
+envPrepend(PYTHONPATH, ${PRODUCT_DIR}/python)
