@@ -366,12 +366,17 @@ class DisplayImpl(virtualDevice.DisplayImpl):
     #
     # Set gray scale
     #
-    def _setScaleType(self, type):
-        ds9Cmd("scale %s" % type, frame=self.display.frame)
+    def _scale(self, algorithm, min, max, unit, *args, **kwargs):
+        if algorithm:
+            ds9Cmd("scale %s" % algorithm, frame=self.display.frame)
 
-    def _setScaleLimits(self, min, max):
-        ds9Cmd("scale limits %g %g" % (min, max), frame=self.display.frame)
+        if min in ("minmax", "zscale"):
+            ds9Cmd("scale mode %s" % (min))
+        else:
+            if unit:
+                print("ds9: ignoring scale unit %s" % unit)
 
+            ds9Cmd("scale limits %g %g" % (min, max), frame=self.display.frame)
     #
     # Zoom and Pan
     #
