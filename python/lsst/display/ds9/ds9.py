@@ -350,7 +350,7 @@ class DisplayImpl(virtualDevice.DisplayImpl):
     """
         cmd = selectFrame(self.display.frame) + "; "
         for region in ds9Regions.dot(symb, c, r, size, ctype, fontFamily, textAngle):
-            cmd += 'regions command {%s};' % region
+            cmd += 'regions command {%s}; ' % region
 
         ds9Cmd(cmd, silent=True)
 
@@ -360,7 +360,7 @@ class DisplayImpl(virtualDevice.DisplayImpl):
 
         cmd = selectFrame(self.display.frame) + "; "
         for region in ds9Regions.drawLines(points, ctype):
-            cmd += 'regions command {%s};' % region
+            cmd += 'regions command {%s}; ' % region
 
         ds9Cmd(cmd)
     #
