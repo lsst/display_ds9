@@ -442,6 +442,8 @@ def _i_mtv(data, wcs, title, isMask):
     else:
         pfd = file("foo.fits", "w")
 
+    ds9Cmd(flush=True, silent=True)
+
     try:
         displayLib.writeFitsImage(pfd.fileno(), data, wcs, title)
     except Exception, e:
