@@ -37,7 +37,7 @@ import lsst.afw.display.ds9Regions as ds9Regions
 
 try:
     from . import xpa
-except ImportError, e:
+except ImportError as e:
     print("Cannot import xpa: %s" % (e), file=sys.stderr)
 
 import lsst.afw.display.displayLib as displayLib
@@ -188,7 +188,7 @@ def ds9Cmd(cmd=None, trap=True, flush=False, silent=True, frame=None, get=False)
         ret = xpa.set(None, getXpaAccessPoint(), cmd, "", "", 0)
         if ret:
             raise IOError(ret)
-    except IOError, e:
+    except IOError as e:
         if not trap:
             raise Ds9Error("XPA: %s, (%s)" % (e, cmd))
         elif not silent:
@@ -208,7 +208,7 @@ def initDS9(execDs9=True):
                 needShow = (int(v1) <= 4)
         except:
             pass
-    except Ds9Error, e:
+    except Ds9Error as e:
         if execDs9:
             print("ds9 doesn't appear to be running (%s), I'll exec it for you" % e)
         if not re.search('xpa', os.environ['PATH']):
