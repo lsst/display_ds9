@@ -26,7 +26,10 @@
 
 from __future__ import absolute_import, division, print_function
 
-import os, re, math, sys, time
+import os
+import re
+import sys
+import time
 
 import lsst.afw.display.interface as interface
 import lsst.afw.display.virtualDevice as virtualDevice
@@ -78,7 +81,7 @@ def ds9Version():
     try:
         v = ds9Cmd("about", get=True)
         return v.splitlines()[1].split()[1]
-    except Exception, e:
+    except Exception as e:
         print("Error reading version: %s" % e, file=sys.stderr)
         return "0.0.0"
 
@@ -187,7 +190,7 @@ def ds9Cmd(cmd=None, trap=True, flush=False, silent=True, frame=None, get=False)
             raise IOError(ret)
     except IOError, e:
         if not trap:
-            raise Ds9Error, "XPA: %s, (%s)" % (e, cmd)
+            raise Ds9Error("XPA: %s, (%s)" % (e, cmd))
         elif not silent:
             print("Caught ds9 exception processing command \"%s\": %s" % (cmd, e), file=sys.stderr)
 
@@ -209,7 +212,7 @@ def initDS9(execDs9=True):
         if execDs9:
             print("ds9 doesn't appear to be running (%s), I'll exec it for you" % e)
         if not re.search('xpa', os.environ['PATH']):
-            raise Ds9Error, 'You need the xpa binaries in your path to use ds9 with python'
+            raise Ds9Error('You need the xpa binaries in your path to use ds9 with python')
 
         os.system('ds9 &')
         for i in range(10):
@@ -290,7 +293,7 @@ class DisplayImpl(virtualDevice.DisplayImpl):
             nMaskPlanes = max(maskPlanes.values()) + 1
 
             planes = {}                      # build inverse dictionary
-            for key in maskPlanes.keys():
+            for key in maskPlanes:
                 planes[maskPlanes[key]] = key
 
             planeList = range(nMaskPlanes)
@@ -446,7 +449,7 @@ def _i_mtv(data, wcs, title, isMask):
 
     try:
         displayLib.writeFitsImage(pfd.fileno(), data, wcs, title)
-    except Exception, e:
+    except Exception as e:
         try:
             pfd.close()
         except:
