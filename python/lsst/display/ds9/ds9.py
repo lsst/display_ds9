@@ -26,10 +26,14 @@
 
 from __future__ import absolute_import, division, print_function
 
-import os, re, math, sys, time
+import os
+import re
+import sys
+import time
 
 import lsst.afw.display.interface as interface
 import lsst.afw.display.virtualDevice as virtualDevice
+import lsst.afw.display.ds9Regions as ds9Regions
 
 try:
     from . import xpa
@@ -77,7 +81,7 @@ def ds9Version():
     try:
         v = ds9Cmd("about", get=True)
         return v.splitlines()[1].split()[1]
-    except Exception, e:
+    except Exception as e:
         print("Error reading version: %s" % e, file=sys.stderr)
         return "0.0.0"
 
@@ -186,7 +190,7 @@ def ds9Cmd(cmd=None, trap=True, flush=False, silent=True, frame=None, get=False)
             raise IOError(ret)
     except IOError, e:
         if not trap:
-            raise Ds9Error, "XPA: %s, (%s)" % (e, cmd)
+            raise Ds9Error("XPA: %s, (%s)" % (e, cmd))
         elif not silent:
             print("Caught ds9 exception processing command \"%s\": %s" % (cmd, e), file=sys.stderr)
 
@@ -208,7 +212,7 @@ def initDS9(execDs9=True):
         if execDs9:
             print("ds9 doesn't appear to be running (%s), I'll exec it for you" % e)
         if not re.search('xpa', os.environ['PATH']):
-            raise Ds9Error, 'You need the xpa binaries in your path to use ds9 with python'
+            raise Ds9Error('You need the xpa binaries in your path to use ds9 with python')
 
         os.system('ds9 &')
         for i in range(10):
@@ -289,7 +293,7 @@ class DisplayImpl(virtualDevice.DisplayImpl):
             nMaskPlanes = max(maskPlanes.values()) + 1
 
             planes = {}                      # build inverse dictionary
-            for key in maskPlanes.keys():
+            for key in maskPlanes:
                 planes[maskPlanes[key]] = key
 
             planeList = range(nMaskPlanes)
@@ -347,62 +351,9 @@ class DisplayImpl(virtualDevice.DisplayImpl):
 
     N.b. objects derived from BaseCore include Axes and Quadrupole.
     """
-        if ctype == None:
-            color = ""                       # the default
-        else:
-            color = ' # color=%s' % ctype
-
         cmd = selectFrame(self.display.frame) + "; "
-        r += 1
-        c += 1                      # ds9 uses 1-based coordinates
-        if isinstance(symb, afwGeom.ellipses.Axes):
-            cmd += 'regions command {ellipse %g %g %g %g %g%s}; ' % (c, r, symb.getA(), symb.getB(),
-                                                                     math.degrees(symb.getTheta()), color)
-        elif symb == '+':
-            cmd += 'regions command {line %g %g %g %g%s}; ' % (c, r+size, c, r-size, color)
-            cmd += 'regions command {line %g %g %g %g%s}; ' % (c-size, r, c+size, r, color)
-        elif symb == 'x':
-            size = size/math.sqrt(2)
-            cmd += 'regions command {line %g %g %g %g%s}; ' % (c+size, r+size, c-size, r-size, color)
-            cmd += 'regions command {line %g %g %g %g%s}; ' % (c-size, r+size, c+size, r-size, color)
-        elif symb == '*':
-            size30 = 0.5*size
-            size60 = 0.5*math.sqrt(3)*size
-            cmd += 'regions command {line %g %g %g %g%s}; ' % (c+size, r, c-size, r, color)
-            cmd += 'regions command {line %g %g %g %g%s}; ' % (c-size30, r+size60, c+size30, r-size60, color)
-            cmd += 'regions command {line %g %g %g %g%s}; ' % (c+size30, r+size60, c-size30, r-size60, color)
-        elif symb == 'o':
-            cmd += 'regions command {circle %g %g %g%s}; ' % (c, r, size, color)
-        else:
-            try:
-                # We have to check for the frame's existance with show() as the text command crashed ds9 5.4
-                # if it doesn't
-                if needShow:
-                    self._show()
-
-                color = re.sub("^ # ", "", color) # skip the leading " # "
-
-                angle = ""
-                if textAngle is not None:
-                    angle += " textangle=%.1f"%(textAngle) 
-
-                font = ""
-                if size != 2 or fontFamily != "helvetica":
-                    fontFamily = fontFamily.split()
-                    font += ' font="%s %d' % (fontFamily.pop(0), int(10*size/2.0 + 0.5))
-                    if fontFamily:
-                        font += " %s" % " ".join(fontFamily)
-                    font += '"'
-                extra = ""
-                if color or angle or font:
-                    extra = " # "
-                    extra += color
-                    extra += angle
-                    extra += font
-
-                cmd += 'regions command {text %g %g \"%s\"%s };' % (c, r, symb, extra)
-            except Exception, e:
-                print("Ds9 frame %d doesn't exist" % self.display.frame, e, file=sys.stderr)
+        for region in ds9Regions.dot(symb, c, r, size, ctype, fontFamily, textAngle):
+            cmd += 'regions command {%s}; ' % region
 
         ds9Cmd(cmd, silent=True)
 
@@ -410,33 +361,25 @@ class DisplayImpl(virtualDevice.DisplayImpl):
         """Connect the points, a list of (col,row)
         Ctype is the name of a colour (e.g. 'red')"""
 
-        if ctype == None:                # default
-            color = ""
-        else:
-            color = "# color=%s" % ctype
+        cmd = selectFrame(self.display.frame) + "; "
+        for region in ds9Regions.drawLines(points, ctype):
+            cmd += 'regions command {%s}; ' % region
 
-        if len(points) > 0:
-            cmd = selectFrame(self.display.frame) + "; "
-
-            c0, r0 = points[0]
-            r0 += 1
-            c0 += 1             # ds9 uses 1-based coordinates
-            for (c, r) in points[1:]:
-                r += 1
-                c += 1            # ds9 uses 1-based coordinates
-                cmd += 'regions command { line %g %g %g %g %s};' % (c0, r0, c, r, color)
-                c0, r0 = c, r
-
-            ds9Cmd(cmd)
+        ds9Cmd(cmd)
     #
     # Set gray scale
     #
-    def _setScaleType(self, type):
-        ds9Cmd("scale %s" % type, frame=self.display.frame)
+    def _scale(self, algorithm, min, max, unit, *args, **kwargs):
+        if algorithm:
+            ds9Cmd("scale %s" % algorithm, frame=self.display.frame)
 
-    def _setScaleLimits(self, min, max):
-        ds9Cmd("scale limits %g %g" % (min, max), frame=self.display.frame)
+        if min in ("minmax", "zscale"):
+            ds9Cmd("scale mode %s" % (min))
+        else:
+            if unit:
+                print("ds9: ignoring scale unit %s" % unit)
 
+            ds9Cmd("scale limits %g %g" % (min, max), frame=self.display.frame)
     #
     # Zoom and Pan
     #
@@ -502,9 +445,11 @@ def _i_mtv(data, wcs, title, isMask):
     else:
         pfd = file("foo.fits", "w")
 
+    ds9Cmd(flush=True, silent=True)
+
     try:
         displayLib.writeFitsImage(pfd.fileno(), data, wcs, title)
-    except Exception, e:
+    except Exception as e:
         try:
             pfd.close()
         except:
