@@ -209,10 +209,19 @@ def initDS9(execDs9=True):
         except:
             pass
     except Ds9Error as e:
-        if execDs9:
-            print("ds9 doesn't appear to be running (%s), I'll exec it for you" % e)
         if not re.search('xpa', os.environ['PATH']):
             raise Ds9Error('You need the xpa binaries in your path to use ds9 with python')
+
+        if not execDs9:
+            raise Ds9Error
+
+        import distutils.spawn
+        if not distutils.spawn.find_executable("ds9"):
+            raise NameError("ds9 doesn't appear to be on your path")
+        if not "DISPLAY" in os.environ:
+            raise RuntimeError("$DISPLAY isn't set, so I won't be able to start ds9 for you")
+
+        print("ds9 doesn't appear to be running (%s), I'll try to exec it for you" % e)
 
         os.system('ds9 &')
         for i in range(10):
