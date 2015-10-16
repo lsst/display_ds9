@@ -41,7 +41,6 @@ except ImportError as e:
     print("Cannot import xpa: %s" % (e), file=sys.stderr)
 
 import lsst.afw.display.displayLib as displayLib
-import lsst.afw.geom as afwGeom
 import lsst.afw.math as afwMath
 
 try:
