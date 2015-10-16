@@ -317,7 +317,7 @@ class DisplayImpl(virtualDevice.DisplayImpl):
                 if not ((1 << p) & usedPlanes): # no pixels have this bitplane set
                     continue
 
-                mask1 <<= mask
+                mask1[:] = mask
                 mask1 &= (1 << p)
 
                 color = self.display.getMaskPlaneColor(pname)
