@@ -41,7 +41,6 @@ except ImportError as e:
     print("Cannot import xpa: %s" % (e), file=sys.stderr)
 
 import lsst.afw.display.displayLib as displayLib
-import lsst.afw.geom as afwGeom
 import lsst.afw.math as afwMath
 
 try:
@@ -317,7 +316,7 @@ class DisplayImpl(virtualDevice.DisplayImpl):
                 if not ((1 << p) & usedPlanes): # no pixels have this bitplane set
                     continue
 
-                mask1 <<= mask
+                mask1[:] = mask
                 mask1 &= (1 << p)
 
                 color = self.display.getMaskPlaneColor(pname)
