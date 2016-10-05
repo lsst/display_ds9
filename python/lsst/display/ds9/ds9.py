@@ -184,7 +184,7 @@ def ds9Cmd(cmd=None, trap=True, flush=False, silent=True, frame=None, get=False)
         cmdBuffer._lenCommands += 1 + len(cmd)
 
     if flush or cmdBuffer._lenCommands >= cmdBuffer._getSize():
-        cmd = cmdBuffer._commands + "\n"
+        cmd = (cmdBuffer._commands + "\n").encode('utf-8')
         cmdBuffer._commands = ""
         cmdBuffer._lenCommands = 0
     else:
