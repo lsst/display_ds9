@@ -44,6 +44,10 @@ Simple interface to the xpa routines used to communicate with ds9
 %rename(set) XPASet1;
 %rename(setFd1) XPASetFd1;
 
+%begin %{
+    #define SWIG_PYTHON_2_UNICODE
+%}
+
 %{
 #include "xpa.h"
 #include "lsst/pex/exceptions/Runtime.h"
