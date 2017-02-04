@@ -1,5 +1,6 @@
 setupRequired(afw)
 setupRequired(xpa)
 setupRequired(python_future)
+setupRequired(pybind11)
 
 envPrepend(PYTHONPATH, ${PRODUCT_DIR}/python)
