@@ -36,12 +36,14 @@ import re
 import sys
 import time
 
+import numpy as np
+
 import lsst.afw.display.interface as interface
 import lsst.afw.display.virtualDevice as virtualDevice
 import lsst.afw.display.ds9Regions as ds9Regions
 
 try:
-    from . import xpa
+    from . import xpa as xpa
 except ImportError as e:
     print("Cannot import xpa: %s" % (e), file=sys.stderr)
 
@@ -463,8 +465,10 @@ def _i_mtv(data, wcs, title, isMask):
     if True:
         if isMask:
             xpa_cmd = "xpaset %s fits mask" % getXpaAccessPoint()
-            if re.search(r"unsigned short|std::uint16_t", data.__str__()):
-                data |= 0x8000  # Hack. ds9 mis-handles BZERO/BSCALE in masks. This is a copy we're modifying
+            # ds9 mis-handles BZERO/BSCALE in uint16 data. The following hack works around this.
+            # This is a copy we're modifying
+            if data.getArray().dtype == np.uint16:
+                data |= 0x8000
         else:
             xpa_cmd = "xpaset %s fits" % getXpaAccessPoint()
 
