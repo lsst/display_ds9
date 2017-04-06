@@ -19,7 +19,7 @@
  * the GNU General Public License along with this program.  If not,
  * see <https://www.lsstcorp.org/LegalNotices/>.
  */
-#include <pybind11/pybind11.h>
+#include "pybind11/pybind11.h"
 
 #include "xpa.h"
 #include "lsst/pex/exceptions/Runtime.h"
@@ -145,8 +145,9 @@ void reset() { myXPA::get(true); }
 
 }  // <anonymous>
 
-PYBIND11_PLUGIN(_xpa) {
-    py::module mod("_xpa", "Simple interface to the xpa routines used to communicate with ds9");
+PYBIND11_PLUGIN(xpa) {
+    py::module::import("lsst.pex.exceptions");
+    py::module mod("xpa", "Simple interface to the xpa routines used to communicate with ds9");
 
     py::class_<xparec> cls(mod, "xparec");
     cls.def(py::init<>());
