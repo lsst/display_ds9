@@ -31,6 +31,9 @@ from builtins import range
 from builtins import object
 from past.builtins import long
 
+__all__ = ["Ds9Error", "getXpaAccessPoint", "ds9Version", "Buffer",
+           "selectFrame", "ds9Cmd", "initDS9", "Ds9Event", "DisplayImpl"]
+
 import os
 import re
 import sys
