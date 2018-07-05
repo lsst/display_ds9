@@ -167,7 +167,7 @@ except NameError:
 
 
 def selectFrame(frame):
-    return "frame %d" % (frame)
+    return "frame {}".format(frame)
 
 
 def ds9Cmd(cmd=None, trap=True, flush=False, silent=True, frame=None, get=False):
