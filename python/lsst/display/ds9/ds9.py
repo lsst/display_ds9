@@ -20,13 +20,6 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-from __future__ import absolute_import, division, print_function
-from builtins import str
-from builtins import next
-from builtins import range
-from builtins import object
-from past.builtins import long
-
 __all__ = ["Ds9Error", "getXpaAccessPoint", "ds9Version", "Buffer",
            "selectFrame", "ds9Cmd", "initDS9", "Ds9Event", "DisplayImpl"]
 
@@ -321,7 +314,7 @@ class DisplayImpl(virtualDevice.DisplayImpl):
                 planes[maskPlanes[key]] = key
 
             planeList = range(nMaskPlanes)
-            usedPlanes = long(afwMath.makeStatistics(mask, afwMath.SUM).getValue())
+            usedPlanes = int(afwMath.makeStatistics(mask, afwMath.SUM).getValue())
             mask1 = mask.Factory(mask.getDimensions())  # Mask containing just one bitplane
 
             colorGenerator = self.display.maskColorGenerator(omitBW=True)
