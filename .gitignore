@@ -4,6 +4,10 @@ _build.*
 *.so
 *.os
 *.pyc
+.cache
+.pytest_cache
+pytest_session.txt
+.coverage
 .sconf_temp
 .sconsign.dblite
 config.log
