@@ -20,10 +20,6 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-##
-## \file
-## \brief Definitions to talk to ds9 from python
-
 from __future__ import absolute_import, division, print_function
 from builtins import str
 from builtins import next
@@ -58,18 +54,17 @@ try:
 except NameError:
     needShow = True                        # Used to avoid a bug in ds9 5.4
 
-## An error talking to ds9
+# An error talking to ds9
 
 
 class Ds9Error(IOError):
     """Some problem talking to ds9"""
 
+
 try:
     _maskTransparency
 except NameError:
     _maskTransparency = None
-
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
 def getXpaAccessPoint():
@@ -98,10 +93,11 @@ def ds9Version():
         print("Error reading version: %s" % e, file=sys.stderr)
         return "0.0.0"
 
+
 try:
     cmdBuffer
 except NameError:
-    XPA_SZ_LINE = 4096 - 100            # internal buffersize in xpa. Sigh; esp. as the 100 is some needed slop
+    XPA_SZ_LINE = 4096 - 100  # internal buffersize in xpa. Sigh; esp. as the 100 is some needed slop
 
     class Buffer(object):
         """Control buffering the sending of commands to ds9;
@@ -129,15 +125,15 @@ except NameError:
                 size = XPA_SZ_LINE - 5
 
             if size > XPA_SZ_LINE:
-                print ("xpa silently hardcodes a limit of %d for buffer sizes (you asked for %d) " %
-                       (XPA_SZ_LINE, size), file=sys.stderr)
+                print("xpa silently hardcodes a limit of %d for buffer sizes (you asked for %d) " %
+                      (XPA_SZ_LINE, size), file=sys.stderr)
                 self.set(-1)            # use max buffersize
                 return
 
             if self._bufsize:
-                self._bufsize[-1] = size # change current value
+                self._bufsize[-1] = size  # change current value
             else:
-                self._bufsize.append(size) # there is no current value; set one
+                self._bufsize.append(size)  # there is no current value; set one
 
             self.flush(silent=silent)
 
@@ -182,7 +178,8 @@ def ds9Cmd(cmd=None, trap=True, flush=False, silent=True, frame=None, get=False)
             return xpa.get(None, getXpaAccessPoint(), cmd, "").strip()
 
         # Work around xpa's habit of silently truncating long lines
-        if cmdBuffer._lenCommands + len(cmd) > XPA_SZ_LINE - 5: # 5 to handle newlines and such like
+        # 5 to handle newlines and such like
+        if cmdBuffer._lenCommands + len(cmd) > XPA_SZ_LINE - 5:
             ds9Cmd(flush=True, silent=silent)
 
         cmdBuffer._commands += ";" + cmd
@@ -222,7 +219,7 @@ def initDS9(execDs9=True):
         try:
             if int(v0) == 5:
                 needShow = (int(v1) <= 4)
-        except:
+        except Exception:
             pass
     except Ds9Error as e:
         if not re.search('xpa', os.environ['PATH']):
@@ -234,7 +231,7 @@ def initDS9(execDs9=True):
         import distutils.spawn
         if not distutils.spawn.find_executable("ds9"):
             raise NameError("ds9 doesn't appear to be on your path")
-        if not "DISPLAY" in os.environ:
+        if "DISPLAY" not in os.environ:
             raise RuntimeError("$DISPLAY isn't set, so I won't be able to start ds9 for you")
 
         print("ds9 doesn't appear to be running (%s), I'll try to exec it for you" % e)
@@ -263,8 +260,6 @@ class Ds9Event(interface.Event):
     def __init__(self, k, x, y):
         interface.Event.__init__(self, k, x, y)
 
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
 
 class DisplayImpl(virtualDevice.DisplayImpl):
 
@@ -277,7 +272,7 @@ class DisplayImpl(virtualDevice.DisplayImpl):
 
     def _setMaskTransparency(self, transparency, maskplane):
         """Specify ds9's mask transparency (percent); or None to not set it when loading masks"""
-        if maskplane != None:
+        if maskplane is not None:
             print("ds9 is unable to set transparency for individual maskplanes" % maskplane,
                   file=sys.stderr)
             return
@@ -321,20 +316,20 @@ class DisplayImpl(virtualDevice.DisplayImpl):
             maskPlanes = mask.getMaskPlaneDict()
             nMaskPlanes = max(maskPlanes.values()) + 1
 
-            planes = {}                      # build inverse dictionary
+            planes = {}  # build inverse dictionary
             for key in maskPlanes:
                 planes[maskPlanes[key]] = key
 
             planeList = range(nMaskPlanes)
             usedPlanes = long(afwMath.makeStatistics(mask, afwMath.SUM).getValue())
-            mask1 = mask.Factory(mask.getDimensions()) # Mask containing just one bitplane
+            mask1 = mask.Factory(mask.getDimensions())  # Mask containing just one bitplane
 
             colorGenerator = self.display.maskColorGenerator(omitBW=True)
             for p in planeList:
                 if planes.get(p):
                     pname = planes[p]
 
-                if not ((1 << p) & usedPlanes): # no pixels have this bitplane set
+                if not ((1 << p) & usedPlanes):  # no pixels have this bitplane set
                     continue
 
                 mask1[:] = mask
@@ -342,7 +337,7 @@ class DisplayImpl(virtualDevice.DisplayImpl):
 
                 color = self.display.getMaskPlaneColor(pname)
 
-                if not color:            # none was specified
+                if not color:  # none was specified
                     color = next(colorGenerator)
                 elif color.lower() == "ignore":
                     continue
@@ -376,8 +371,8 @@ class DisplayImpl(virtualDevice.DisplayImpl):
             @:Mxx,Mxy,Myy    Draw an ellipse with moments (Mxx, Mxy, Myy) (argument size is ignored)
             An object derived from afwGeom.ellipses.BaseCore Draw the ellipse (argument size is ignored)
     Any other value is interpreted as a string to be drawn. Strings obey the fontFamily (which may be extended
-    with other characteristics, e.g. "times bold italic".  Text will be drawn rotated by textAngle (textAngle is
-    ignored otherwise).
+    with other characteristics, e.g. "times bold italic". Text will be drawn rotated by textAngle
+    (textAngle is ignored otherwise).
 
     N.b. objects derived from BaseCore include Axes and Quadrupole.
     """
@@ -427,7 +422,8 @@ class DisplayImpl(virtualDevice.DisplayImpl):
         """Pan frame to (colc, rowc)"""
 
         cmd = selectFrame(self.display.frame) + "; "
-        cmd += "pan to %g %g physical; " % (colc + 1, rowc + 1) # ds9 is 1-indexed. Grrr
+        # ds9 is 1-indexed. Grrr
+        cmd += "pan to %g %g physical; " % (colc + 1, rowc + 1)
 
         ds9Cmd(cmd, flush=True)
 
@@ -437,7 +433,7 @@ class DisplayImpl(virtualDevice.DisplayImpl):
         vals = ds9Cmd("imexam key coordinate", get=True).split()
         if vals[0] == "XPA$ERROR":
             if vals[1:4] == ['unknown', 'option', '"-state"']:
-                pass                    # a ds9 bug --- you get this by hitting TAB
+                pass  # a ds9 bug --- you get this by hitting TAB
             else:
                 print("Error return from imexam:", " ".join(vals), file=sys.stderr)
             return None
@@ -446,18 +442,18 @@ class DisplayImpl(virtualDevice.DisplayImpl):
         try:
             x = float(vals[0])
             y = float(vals[1])
-        except:
+        except Exception:
             x = float("NaN")
             y = float("NaN")
 
         return Ds9Event(k, x, y)
 
-#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 try:
     haveGzip
 except NameError:
-    haveGzip = not os.system("gzip < /dev/null > /dev/null 2>&1") # does gzip work?
+    # does gzip work?
+    haveGzip = not os.system("gzip < /dev/null > /dev/null 2>&1")
 
 
 def _i_mtv(data, wcs, title, isMask):
@@ -468,7 +464,8 @@ def _i_mtv(data, wcs, title, isMask):
     if True:
         if isMask:
             xpa_cmd = "xpaset %s fits mask" % getXpaAccessPoint()
-            # ds9 mis-handles BZERO/BSCALE in uint16 data. The following hack works around this.
+            # ds9 mis-handles BZERO/BSCALE in uint16 data.
+            # The following hack works around this.
             # This is a copy we're modifying
             if data.getArray().dtype == np.uint16:
                 data |= 0x8000
@@ -480,7 +477,7 @@ def _i_mtv(data, wcs, title, isMask):
 
         pfd = os.popen(xpa_cmd, "w")
     else:
-        pfd = file("foo.fits", "w")
+        pfd = open("foo.fits", "w")
 
     ds9Cmd(flush=True, silent=True)
 
@@ -489,15 +486,16 @@ def _i_mtv(data, wcs, title, isMask):
     except Exception as e:
         try:
             pfd.close()
-        except:
+        except Exception:
             pass
 
         raise e
 
     try:
         pfd.close()
-    except:
+    except Exception:
         pass
+
 
 if False:
     try:
