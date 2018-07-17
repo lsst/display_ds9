@@ -145,9 +145,8 @@ void reset() { myXPA::get(true); }
 
 }  // <anonymous>
 
-PYBIND11_PLUGIN(xpa) {
+PYBIND11_MODULE(xpa, mod) {
     py::module::import("lsst.pex.exceptions");
-    py::module mod("xpa", "Simple interface to the xpa routines used to communicate with ds9");
 
     py::class_<xparec> cls(mod, "xparec");
     cls.def(py::init<>());
@@ -156,8 +155,6 @@ PYBIND11_PLUGIN(xpa) {
     mod.def("reset", &reset);
     mod.def("set", &XPASet1, "xpa"_a, "xtemplate"_a, "paramList"_a, "mode"_a, "buf"_a, "len"_a = -1);
     mod.def("setFd1", &XPASetFd1, "xpa"_a, "xtemplate"_a, "paramList"_a, "mode"_a, "fd"_a);
-
-    return mod.ptr();
 }
 
 }  // ds9
