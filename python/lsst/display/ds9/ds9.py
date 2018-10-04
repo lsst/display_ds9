@@ -96,6 +96,8 @@ except NameError:
         """Control buffering the sending of commands to ds9;
         annoying but necessary for anything resembling performance
 
+        Notes
+        -----
         The usual usage pattern (from a module importing this file, ds9.py) is:
 
             with ds9.Buffering():
@@ -136,7 +138,11 @@ except NameError:
 
         def pushSize(self, size=-1):
             """Replace current ds9 command buffer size with size (see also popSize)
-            @param:  Size of buffer (-1: largest possible given bugs in xpa)"""
+            
+            Parameters
+            ----------
+            Size of buffer :
+                (-1: largest possible given bugs in xpa)"""
             self.flush(silent=True)
             self._bufsize.append(0)
             self.set(size, silent=True)
@@ -356,19 +362,22 @@ class DisplayImpl(virtualDevice.DisplayImpl):
 
     def _dot(self, symb, c, r, size, ctype, fontFamily="helvetica", textAngle=None):
         """Draw a symbol onto the specified DS9 frame at (col,row) = (c,r) [0-based coordinates]
-    Possible values are:
-            +                Draw a +
-            x                Draw an x
-            *                Draw a *
-            o                Draw a circle
-            @:Mxx,Mxy,Myy    Draw an ellipse with moments (Mxx, Mxy, Myy) (argument size is ignored)
-            An object derived from afwGeom.ellipses.BaseCore Draw the ellipse (argument size is ignored)
-    Any other value is interpreted as a string to be drawn. Strings obey the fontFamily (which may be extended
-    with other characteristics, e.g. "times bold italic". Text will be drawn rotated by textAngle
-    (textAngle is ignored otherwise).
 
-    N.b. objects derived from BaseCore include Axes and Quadrupole.
-    """
+        Notes
+        -----
+        Possible values are:
+                +                Draw a +
+                x                Draw an x
+                *                Draw a *
+                o                Draw a circle
+                @:Mxx,Mxy,Myy    Draw an ellipse with moments (Mxx, Mxy, Myy) (argument size is ignored)
+                An object derived from afwGeom.ellipses.BaseCore Draw the ellipse (argument size is ignored)
+        Any other value is interpreted as a string to be drawn. Strings obey the fontFamily (which may be extended
+        with other characteristics, e.g. "times bold italic". Text will be drawn rotated by textAngle
+        (textAngle is ignored otherwise).
+
+        N.b. objects derived from BaseCore include Axes and Quadrupole.
+        """
         cmd = selectFrame(self.display.frame) + "; "
         for region in ds9Regions.dot(symb, c, r, size, ctype, fontFamily, textAngle):
             cmd += 'regions command {%s}; ' % region
