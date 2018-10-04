@@ -138,7 +138,7 @@ except NameError:
 
         def pushSize(self, size=-1):
             """Replace current ds9 command buffer size with size (see also popSize)
-            
+
             Parameters
             ----------
             Size of buffer :
@@ -372,7 +372,8 @@ class DisplayImpl(virtualDevice.DisplayImpl):
                 o                Draw a circle
                 @:Mxx,Mxy,Myy    Draw an ellipse with moments (Mxx, Mxy, Myy) (argument size is ignored)
                 An object derived from afwGeom.ellipses.BaseCore Draw the ellipse (argument size is ignored)
-        Any other value is interpreted as a string to be drawn. Strings obey the fontFamily (which may be extended
+        Any other value is interpreted as a string to be drawn.
+        Strings obey the fontFamily (which may be extended
         with other characteristics, e.g. "times bold italic". Text will be drawn rotated by textAngle
         (textAngle is ignored otherwise).
 
