@@ -107,7 +107,6 @@ except NameError:
         """
 
         def __init__(self, size=0):
-            """Create a command buffer, with a maximum depth of size"""
             self._commands = ""         # list of pending commands
             self._lenCommands = len(self._commands)
             self._bufsize = []          # stack of bufsizes
