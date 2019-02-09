@@ -9,5 +9,4 @@ display_ds9 documentation preview
 .. toctree::
    :maxdepth: 1
 
-   display_ds9/index
    lsst.display.ds9/index
