@@ -6,7 +6,7 @@
 lsst.display.ds9
 ################
 
-The ``lsst.display.ds9`` module provides an `SAOImageDS9 <http://ds9.si.edu/site/Download.html>`_ backend for the :ref:`lsst.afw.display` module.
+The ``lsst.display.ds9`` module provides an `SAOImage DS9 <http://ds9.si.edu/site/Download.html>`_ backend for the :ref:`lsst.afw.display` module.
 
 .. _lsst.display.ds9-contributing:
 
