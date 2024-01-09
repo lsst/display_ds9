@@ -435,7 +435,7 @@ class DisplayImpl(virtualDevice.DisplayImpl):
 
             planeList = range(nMaskPlanes)
             usedPlanes = int(afwMath.makeStatistics(mask, afwMath.SUM).getValue())
-            mask1 = mask.Factory(mask.getDimensions())  # Mask containing just one bitplane
+            mask1 = mask.Factory(mask.getBBox())  # Mask containing just one bitplane
 
             colorGenerator = self.display.maskColorGenerator(omitBW=True)
             for p in planeList:
