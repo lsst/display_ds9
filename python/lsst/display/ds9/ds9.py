@@ -435,7 +435,7 @@ class DisplayImpl(virtualDevice.DisplayImpl):
 
             planeList = range(nMaskPlanes)
             usedPlanes = int(afwMath.makeStatistics(mask, afwMath.SUM).getValue())
-            mask1 = mask.Factory(mask.getDimensions())  # Mask containing just one bitplane
+            mask1 = mask.Factory(mask.getBBox())  # Mask containing just one bitplane
 
             colorGenerator = self.display.maskColorGenerator(omitBW=True)
             for p in planeList:
@@ -654,23 +654,20 @@ def _i_mtv(data, wcs, title, isMask):
     """
     title = str(title) if title else ""
 
-    if True:
-        if isMask:
-            xpa_cmd = "xpaset %s fits mask" % getXpaAccessPoint()
-            # ds9 mis-handles BZERO/BSCALE in uint16 data.
-            # The following hack works around this.
-            # This is a copy we're modifying
-            if data.getArray().dtype == np.uint16:
-                data |= 0x8000
-        else:
-            xpa_cmd = "xpaset %s fits" % getXpaAccessPoint()
-
-        if haveGzip:
-            xpa_cmd = "gzip | " + xpa_cmd
-
-        pfd = os.popen(xpa_cmd, "w")
+    if isMask:
+        xpa_cmd = "xpaset %s fits mask" % getXpaAccessPoint()
+        # ds9 mis-handles BZERO/BSCALE in uint16 data.
+        # The following hack works around this.
+        # This is a copy we're modifying
+        if data.getArray().dtype == np.uint16:
+            data |= 0x8000
     else:
-        pfd = open("foo.fits", "w")
+        xpa_cmd = "xpaset %s fits" % getXpaAccessPoint()
+
+    if haveGzip:
+        xpa_cmd = "gzip | " + xpa_cmd
+
+    pfd = os.popen(xpa_cmd, "w")
 
     ds9Cmd(flush=True, silent=True)
 
@@ -688,13 +685,3 @@ def _i_mtv(data, wcs, title, isMask):
         pfd.close()
     except Exception:
         pass
-
-
-if False:
-    try:
-        definedCallbacks
-    except NameError:
-        definedCallbacks = True
-
-        for k in ('XPA$ERROR',):
-            interface.setCallback(k)
