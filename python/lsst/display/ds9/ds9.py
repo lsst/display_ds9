@@ -109,7 +109,7 @@ except NameError:
     # internal buffersize in xpa. Sigh; esp. as the 100 is some needed slop
     XPA_SZ_LINE = 4096 - 100
 
-    class Buffer(object):
+    class Buffer:
         """Buffer to control sending commands to DS9.
 
         Notes
