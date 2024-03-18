@@ -24,6 +24,7 @@ __all__ = ["Ds9Error", "getXpaAccessPoint", "ds9Version", "Buffer",
 
 import os
 import re
+import shutil
 import sys
 import time
 
@@ -307,8 +308,7 @@ def initDS9(execDs9=True):
         if not execDs9:
             raise Ds9Error
 
-        import distutils.spawn
-        if not distutils.spawn.find_executable("ds9"):
+        if not shutil.which("ds9"):
             raise NameError("ds9 doesn't appear to be on your path")
         if "DISPLAY" not in os.environ:
             raise RuntimeError("$DISPLAY isn't set, so I won't be able to start ds9 for you")
