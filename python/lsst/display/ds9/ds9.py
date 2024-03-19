@@ -24,6 +24,7 @@ __all__ = ["Ds9Error", "getXpaAccessPoint", "ds9Version", "Buffer",
 
 import os
 import re
+import shutil
 import sys
 import time
 
@@ -36,7 +37,7 @@ import lsst.afw.display.ds9Regions as ds9Regions
 try:
     from . import xpa as xpa
 except ImportError as e:
-    print("Cannot import xpa: %s" % (e), file=sys.stderr)
+    print(f"Cannot import xpa: {e}", file=sys.stderr)
 
 import lsst.afw.display as afwDisplay
 import lsst.afw.math as afwMath
@@ -79,9 +80,9 @@ def getXpaAccessPoint():
         if mat:
             port1, port2 = mat.groups()
 
-            return "127.0.0.1:%s" % (port1)
+            return f"127.0.0.1:{port1}"
         else:
-            print("Failed to parse XPA_PORT=%s" % xpa_port, file=sys.stderr)
+            print(f"Failed to parse XPA_PORT={xpa_port}", file=sys.stderr)
 
     return "ds9"
 
@@ -98,7 +99,7 @@ def ds9Version():
         v = ds9Cmd("about", get=True)
         return v.splitlines()[1].split()[1]
     except Exception as e:
-        print("Error reading version: %s" % e, file=sys.stderr)
+        print(f"Error reading version: {e}", file=sys.stderr)
         return "0.0.0"
 
 
@@ -108,7 +109,7 @@ except NameError:
     # internal buffersize in xpa. Sigh; esp. as the 100 is some needed slop
     XPA_SZ_LINE = 4096 - 100
 
-    class Buffer(object):
+    class Buffer:
         """Buffer to control sending commands to DS9.
 
         Notes
@@ -219,7 +220,7 @@ def selectFrame(frame):
     -------
     frameString : `str`
     """
-    return "frame %d" % (frame)
+    return f"frame {frame}"
 
 
 def ds9Cmd(cmd=None, trap=True, flush=False, silent=True, frame=None, get=False):
@@ -244,7 +245,7 @@ def ds9Cmd(cmd=None, trap=True, flush=False, silent=True, frame=None, get=False)
     global cmdBuffer
     if cmd:
         if frame is not None:
-            cmd = "%s;" % selectFrame(frame) + cmd
+            cmd = f"{selectFrame(frame)};{cmd}"
 
         if get:
             return xpa.get(None, getXpaAccessPoint(), cmd, "").strip()
@@ -271,12 +272,12 @@ def ds9Cmd(cmd=None, trap=True, flush=False, silent=True, frame=None, get=False)
     try:
         ret = xpa.set(None, getXpaAccessPoint(), cmd, "", "", 0)
         if ret:
-            raise IOError(ret)
-    except IOError as e:
+            raise OSError(ret)
+    except OSError as e:
         if not trap:
-            raise Ds9Error("XPA: %s, (%s)" % (e, cmd))
+            raise Ds9Error(f"XPA: {e}, ({cmd})")
         elif not silent:
-            print("Caught ds9 exception processing command \"%s\": %s" % (cmd, e), file=sys.stderr)
+            print(f"Caught ds9 exception processing command \"{cmd}\": {e}", file=sys.stderr)
 
 
 def initDS9(execDs9=True):
@@ -307,13 +308,12 @@ def initDS9(execDs9=True):
         if not execDs9:
             raise Ds9Error
 
-        import distutils.spawn
-        if not distutils.spawn.find_executable("ds9"):
+        if not shutil.which("ds9"):
             raise NameError("ds9 doesn't appear to be on your path")
         if "DISPLAY" not in os.environ:
             raise RuntimeError("$DISPLAY isn't set, so I won't be able to start ds9 for you")
 
-        print("ds9 doesn't appear to be running (%s), I'll try to exec it for you" % e)
+        print(f"ds9 doesn't appear to be running ({e}), I'll try to exec it for you")
 
         os.system('ds9 &')
         for i in range(10):
@@ -365,10 +365,10 @@ class DisplayImpl(virtualDevice.DisplayImpl):
             ignored.
         """
         if maskplane is not None:
-            print("ds9 is unable to set transparency for individual maskplanes" % maskplane,
+            print(f"ds9 is unable to set transparency for individual maskplanes ({maskplane})",
                   file=sys.stderr)
             return
-        ds9Cmd("mask transparency %d" % transparency, frame=self.display.frame)
+        ds9Cmd(f"mask transparency {transparency}", frame=self.display.frame)
 
     def _getMaskTransparency(self, maskplane):
         """Return the current DS9's mask transparency.
@@ -455,7 +455,7 @@ class DisplayImpl(virtualDevice.DisplayImpl):
                 elif color.lower() == "ignore":
                     continue
 
-                ds9Cmd("mask color %s" % color)
+                ds9Cmd(f"mask color {color}")
                 _i_mtv(mask1, wcs, title, True)
     #
     # Graphics commands
@@ -523,7 +523,7 @@ class DisplayImpl(virtualDevice.DisplayImpl):
         """
         cmd = selectFrame(self.display.frame) + "; "
         for region in ds9Regions.dot(symb, c, r, size, ctype, fontFamily, textAngle):
-            cmd += 'regions command {%s}; ' % region
+            cmd += f'regions command {{{region}}}; '
 
         ds9Cmd(cmd, silent=True)
 
@@ -539,7 +539,7 @@ class DisplayImpl(virtualDevice.DisplayImpl):
         """
         cmd = selectFrame(self.display.frame) + "; "
         for region in ds9Regions.drawLines(points, ctype):
-            cmd += 'regions command {%s}; ' % region
+            cmd += f'regions command {{{region}}}; '
 
         ds9Cmd(cmd)
 
@@ -562,15 +562,15 @@ class DisplayImpl(virtualDevice.DisplayImpl):
             Ignored
         """
         if algorithm:
-            ds9Cmd("scale %s" % algorithm, frame=self.display.frame)
+            ds9Cmd(f"scale {algorithm}", frame=self.display.frame)
 
         if min in ("minmax", "zscale"):
-            ds9Cmd("scale mode %s" % (min))
+            ds9Cmd(f"scale mode {min}")
         else:
             if unit:
-                print("ds9: ignoring scale unit %s" % unit)
+                print(f"ds9: ignoring scale unit {unit}")
 
-            ds9Cmd("scale limits %g %g" % (min, max), frame=self.display.frame)
+            ds9Cmd(f"scale limits {min:g} {max:g}", frame=self.display.frame)
     #
     # Zoom and Pan
     #
@@ -584,7 +584,7 @@ class DisplayImpl(virtualDevice.DisplayImpl):
             DS9 zoom factor.
         """
         cmd = selectFrame(self.display.frame) + "; "
-        cmd += "zoom to %d; " % zoomfac
+        cmd += f"zoom to {zoomfac}; "
 
         ds9Cmd(cmd, flush=True)
 
@@ -600,7 +600,7 @@ class DisplayImpl(virtualDevice.DisplayImpl):
         """
         cmd = selectFrame(self.display.frame) + "; "
         # ds9 is 1-indexed. Grrr
-        cmd += "pan to %g %g physical; " % (colc + 1, rowc + 1)
+        cmd += f"pan to {colc + 1:g} {rowc + 1:g} physical; "
 
         ds9Cmd(cmd, flush=True)
 
@@ -655,14 +655,14 @@ def _i_mtv(data, wcs, title, isMask):
     title = str(title) if title else ""
 
     if isMask:
-        xpa_cmd = "xpaset %s fits mask" % getXpaAccessPoint()
+        xpa_cmd = f"xpaset {getXpaAccessPoint()} fits mask"
         # ds9 mis-handles BZERO/BSCALE in uint16 data.
         # The following hack works around this.
         # This is a copy we're modifying
         if data.getArray().dtype == np.uint16:
             data |= 0x8000
     else:
-        xpa_cmd = "xpaset %s fits" % getXpaAccessPoint()
+        xpa_cmd = f"xpaset {getXpaAccessPoint()} fits"
 
     if haveGzip:
         xpa_cmd = "gzip | " + xpa_cmd
