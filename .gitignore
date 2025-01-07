@@ -18,3 +18,4 @@ doc/doxygen.conf
 python/lsst/display/ds9/version.py
 tests/.tests
 ups/*.cfgc
+python/*.dist-info/
