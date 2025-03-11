@@ -25,6 +25,7 @@ __all__ = ["Ds9Error", "getXpaAccessPoint", "ds9Version", "Buffer",
 import os
 import re
 import shutil
+import subprocess
 import sys
 import time
 
@@ -671,21 +672,6 @@ def _i_mtv(data, wcs, title, isMask, metadata):
     if haveGzip:
         xpa_cmd = "gzip | " + xpa_cmd
 
-    pfd = os.popen(xpa_cmd, "w")
-
-    ds9Cmd(flush=True, silent=True)
-
-    try:
-        afwDisplay.writeFitsImage(pfd.fileno(), data, wcs, title, metadata)
-    except Exception as e:
-        try:
-            pfd.close()
-        except Exception:
-            pass
-
-        raise e
-
-    try:
-        pfd.close()
-    except Exception:
-        pass
+    with subprocess.Popen(xpa_cmd, stdin=subprocess.PIPE, shell=True) as pfd:
+        ds9Cmd(flush=True, silent=True)
+        afwDisplay.writeFitsImage(pfd, data, wcs, title, metadata)
