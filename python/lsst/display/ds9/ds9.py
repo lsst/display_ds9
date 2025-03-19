@@ -25,6 +25,7 @@ __all__ = ["Ds9Error", "getXpaAccessPoint", "ds9Version", "Buffer",
 import os
 import re
 import shutil
+import subprocess
 import sys
 import time
 
@@ -390,7 +391,7 @@ class DisplayImpl(virtualDevice.DisplayImpl):
         """
         ds9Cmd("raise", trap=False, frame=self.display.frame)
 
-    def _mtv(self, image, mask=None, wcs=None, title=""):
+    def _mtv(self, image, mask=None, wcs=None, title="", metadata=None):
         """Display an Image and/or Mask on a DS9 display.
 
         Parameters
@@ -403,6 +404,8 @@ class DisplayImpl(virtualDevice.DisplayImpl):
             WCS of data
         title : `str`, optional
             Title of image.
+        metadata : `lsst.daf.base`, optional
+            Additional metadata.
         """
 
         for i in range(3):
@@ -423,7 +426,7 @@ class DisplayImpl(virtualDevice.DisplayImpl):
         self._erase()
 
         if image:
-            _i_mtv(image, wcs, title, False)
+            _i_mtv(image, wcs, title, False, metadata=metadata)
 
         if mask:
             maskPlanes = mask.getMaskPlaneDict()
@@ -456,7 +459,7 @@ class DisplayImpl(virtualDevice.DisplayImpl):
                     continue
 
                 ds9Cmd(f"mask color {color}")
-                _i_mtv(mask1, wcs, title, True)
+                _i_mtv(mask1, wcs, title, True, metadata=metadata)
     #
     # Graphics commands
     #
@@ -638,7 +641,7 @@ except NameError:
     haveGzip = not os.system("gzip < /dev/null > /dev/null 2>&1")
 
 
-def _i_mtv(data, wcs, title, isMask):
+def _i_mtv(data, wcs, title, isMask, metadata):
     """Internal routine to display an image or a mask on a DS9 display.
 
     Parameters
@@ -651,6 +654,8 @@ def _i_mtv(data, wcs, title, isMask):
         Title of display.
     isMask : `bool`
         Is ``data`` a mask?
+    metadata : `lsst.daf.base.PropertySet`
+        Additional metadata.
     """
     title = str(title) if title else ""
 
@@ -667,21 +672,6 @@ def _i_mtv(data, wcs, title, isMask):
     if haveGzip:
         xpa_cmd = "gzip | " + xpa_cmd
 
-    pfd = os.popen(xpa_cmd, "w")
-
-    ds9Cmd(flush=True, silent=True)
-
-    try:
-        afwDisplay.writeFitsImage(pfd.fileno(), data, wcs, title)
-    except Exception as e:
-        try:
-            pfd.close()
-        except Exception:
-            pass
-
-        raise e
-
-    try:
-        pfd.close()
-    except Exception:
-        pass
+    with subprocess.Popen(xpa_cmd, stdin=subprocess.PIPE, shell=True) as pfd:
+        ds9Cmd(flush=True, silent=True)
+        afwDisplay.writeFitsImage(pfd, data, wcs, title, metadata)
