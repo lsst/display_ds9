@@ -243,7 +243,6 @@ def ds9Cmd(cmd=None, trap=True, flush=False, silent=True, frame=None, get=False)
         Return xpa response.
     """
 
-    global cmdBuffer
     if cmd:
         if frame is not None:
             cmd = f"{selectFrame(frame)};{cmd}"
