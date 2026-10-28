@@ -1,3 +1,3 @@
 # -*- python -*-
 from lsst.sconsUtils import scripts
-scripts.BasicSConstruct("display_ds9")
+scripts.BasicSConstruct("display_ds9", noCfgFile=True)

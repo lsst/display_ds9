@@ -1,0 +1,12 @@
+prefix=${pcfiledir}/../..
+includedir=${prefix}/include
+libdir=${prefix}/lib
+doxygen_tag=${prefix}/doc/display_ds9.tag
+lsst_build_requires=pybind11 python3
+
+Name: lsst_display_ds9
+Description: LSST Science Pipelines ds9 display backend
+Version: @VERSION@
+Requires: lsst_pex_exceptions xpa
+Cflags:
+Libs:
